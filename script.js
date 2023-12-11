@@ -58,7 +58,7 @@ function filterAndCreateSheets(csvData) {
     };
 
     // Ask the user for a custom file name
-    const customFileName = prompt("Enter the file name:") + ".xlsx";
+    const customFileName = prompt("Enter the file name:") + " Handhole Status.xlsx";
     const fileName = customFileName ? customFileName : 'Handhole Status.xlsx';
 
     // Initialize an array to store the overview data
