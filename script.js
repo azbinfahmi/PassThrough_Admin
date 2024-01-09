@@ -48,7 +48,7 @@ function filterAndCreateSheets(csvData) {
     const wb = XLSX.utils.book_new();
 
     // Common columns to copy to all sheets
-    const commonColumns = ['ID', 'Service Group', 'Service Set' ,'Service Area', 'Tier Rating', '# of Primary Splitters', '# of Secondary Splitters', 'Equipment', 'vetro_id'];
+    const commonColumns = ['ID', 'Service Group', 'Service Set' ,'Service Area', 'Tier Rating', '# of Primary Splitters', '# of Secondary Splitters', 'Equipment', 'vetro_id', 'v_created_time', 'v_last_edited_time'];
 
     // Additional headers for other sheets
     const additionalHeaders = {
@@ -65,7 +65,7 @@ function filterAndCreateSheets(csvData) {
     const overviewData = [];
 
     // Add the "Overview" sheet
-    const overviewWs = XLSX.utils.json_to_sheet([], { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining'] });
+    const overviewWs = XLSX.utils.json_to_sheet([], { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining', 'Producer', 'Remark'] });
     XLSX.utils.book_append_sheet(wb, overviewWs, 'Overview');
 
     // Counter for numbering sheets
