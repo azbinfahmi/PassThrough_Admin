@@ -56,7 +56,6 @@ function filterAndCreateSheets(csvData) {
         'Producer': ['Producer'],
         'Complete Date': ['Complete Date']
     };
-
     // Ask the user for a custom file name
     const customFileName = prompt("Enter the file name:") + " Handhole Status.xlsx";
     const fileName = customFileName ? customFileName : 'Handhole Status.xlsx';
@@ -106,11 +105,12 @@ function filterAndCreateSheets(csvData) {
                 // Add data for the Overview sheet
                 overviewData.push({
                     'NO': sheetNumber++,
-                    'SG': `SG${sheetNumber - 1}`,
+                    'SG': `SG0${sheetNumber - 1}`,
                     'Overall': `=COUNTA('${sanitizedPlan}'!A2:A150)`,
-                    'Completed': `=COUNTIF('${sanitizedPlan}'!J2:J150,"Y")`,
-                    'No Splitter': `=COUNTIF('${sanitizedPlan}'!J2:J150,"N")`,
-                    'Remaining': `=C${sheetNumber}-(D${sheetNumber}+E${sheetNumber})`
+                    'Completed': `=COUNTIF('${sanitizedPlan}'!L2:L150,"Y")`,
+                    'No Splitter': `=COUNTIF('${sanitizedPlan}'!L2:L150,"N")`,
+                    //'Remaining': `=C${sheetNumber}-(D${sheetNumber}+E${sheetNumber})`
+                    'Remaining': `=IF(C${sheetNumber} -(D${sheetNumber}+E${sheetNumber})=0,"COMPLETED",C${sheetNumber}-(D${sheetNumber}+E${sheetNumber}))`
                 });
             }
         }
