@@ -40,6 +40,9 @@ function parseCSV(csvText) {
     });
 }
 
+const producerName=["TALHA","jEGAN","NIK","AFIQAH","DANIA","NADIA","Azbin"];
+
+
 function filterAndCreateSheets(csvData) {
     // Identify unique values in the v_plan column
     const uniquePlans = [...new Set(csvData.map(row => row.v_plan))];
@@ -64,12 +67,11 @@ function filterAndCreateSheets(csvData) {
     const overviewData = [];
 
     // Add the "Overview" sheet
-    const overviewWs = XLSX.utils.json_to_sheet([], { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining', 'Producer', 'Remark'] });
+    const overviewWs = XLSX.utils.json_to_sheet([], { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining', 'Producer', 'Remark',,'PRODUCER','No.SG(completed)','No.HH(completed)'] });
     XLSX.utils.book_append_sheet(wb, overviewWs, 'Overview');
 
     // Counter for numbering sheets
-    let sheetNumber = 1;
-
+    let sheetNumber = 1,index_=0;
     // Iterate over each unique v_plan and filter data
     uniquePlans.forEach(plan => {
         // Check if plan is not undefined or null
@@ -92,10 +94,40 @@ function filterAndCreateSheets(csvData) {
                 });
 
             // Check if the filteredData array has at least one row with data before appending the sheet
+
             if (filteredData.length > 0) {
                 // Sanitize the plan name to remove invalid characters
                 const sanitizedPlan = plan.replace(/[\\\/?*\[\]:]/g, '_');
 
+                producerformula_top = `=UPPER(`
+                producerformula_middle = []
+                for(let i = 0;i < producerName.length-1; i++){
+                    producerformula_middle.push('IFNA(')
+                }
+                producerformula_middle = producerformula_middle.join('')
+                console.log('producerformula_middle: ',producerformula_middle)
+
+                producerformula_btm = `))`
+
+                //loop to generate producer formula
+                let FinalFormula =[],LastFormula=[]
+                for(let i=0;i<producerName.length;i++){
+                    producerformula = 'VLOOKUP(' + '"' + producerName[i] + '"' +",'" + sanitizedPlan + "'!M2:M150,1,FALSE)"
+
+                    if(i==0){
+                        FinalFormula.push(producerformula_top, producerformula_middle ,producerformula + ',')
+                    }
+                    else if( i < producerName.length -1){
+                        FinalFormula.push(producerformula + ')' +  ',')
+                    }
+                    else{
+                        FinalFormula.push(producerformula + producerformula_btm)
+                    }
+
+                }
+
+                LastFormula = FinalFormula.join('')
+                console.log('LastFormula',LastFormula)
                 // Convert filtered data to sheet
                 const ws = XLSX.utils.json_to_sheet(filteredData, { header: [...commonColumns, ...Object.keys(additionalHeaders)] });
 
@@ -110,14 +142,19 @@ function filterAndCreateSheets(csvData) {
                     'Completed': `=COUNTIF('${sanitizedPlan}'!L2:L150,"Y")`,
                     'No Splitter': `=COUNTIF('${sanitizedPlan}'!L2:L150,"N")`,
                     //'Remaining': `=C${sheetNumber}-(D${sheetNumber}+E${sheetNumber})`
-                    'Remaining': `=IF(C${sheetNumber} -(D${sheetNumber}+E${sheetNumber})=0,"COMPLETED",C${sheetNumber}-(D${sheetNumber}+E${sheetNumber}))`
+                    'Remaining': `=IF(C${sheetNumber} -(D${sheetNumber}+E${sheetNumber})=0,"COMPLETED",C${sheetNumber}-(D${sheetNumber}+E${sheetNumber}))`,
+                    'Producer': LastFormula,
+                    'Remark':``,
+                    '':``,
+                    
                 });
             }
         }
+        index_+=1
     });
-
+    console.log('overviewData: ',overviewData)
     // Update the "Overview" sheet with the final overview data
-    XLSX.utils.sheet_add_json(overviewWs, overviewData, { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining'] });
+    //XLSX.utils.sheet_add_json(overviewWs, overviewData, { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining','Producer'] });
 
     // Add the "TOTAL" row at the bottom of the Overview sheet
     const totalRow = {
@@ -129,7 +166,28 @@ function filterAndCreateSheets(csvData) {
         'Remaining': `=SUM(F2:F${overviewData.length + 1})`
     };
     overviewData.push(totalRow);
-    XLSX.utils.sheet_add_json(overviewWs, overviewData, { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining'] });
+
+    //add producer,PRODUCER,NOSG,COMPLETED
+    for(i in producerName){
+        let index = Number(i)
+        SGCompleted_value = `=COUNTIFS($G$2:$G$21,J${index+2},$F$2:$F$21,"COMPLETED")`
+        HHCompleted_value = `=SUMIF($G$2:$G$21,J${index+2},$D$2:$D$21)`
+
+        if(index < overviewData.length){
+            overviewData[index]['PRODUCER'] = producerName[index]
+            overviewData[index]['No.SG(Completed)'] = SGCompleted_value
+            overviewData[index]['No.HH(Completed)'] = HHCompleted_value
+        }
+        else{
+            overviewData.push({
+                'PRODUCER': producerName[index],
+                'No.SG(Completed)' : SGCompleted_value,
+                'No.HH(Completed)' : HHCompleted_value
+            })
+        }
+    }
+
+    XLSX.utils.sheet_add_json(overviewWs, overviewData);
 
     // Save the workbook to a file with the custom file name
     XLSX.writeFile(wb, fileName);
