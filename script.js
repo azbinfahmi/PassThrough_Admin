@@ -67,7 +67,7 @@ function filterAndCreateSheets(csvData) {
     const overviewData = [];
 
     // Add the "Overview" sheet
-    const overviewWs = XLSX.utils.json_to_sheet([], { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining', 'Producer', 'Remark',,'PRODUCER','No.SG(completed)','No.HH(completed)'] });
+    const overviewWs = XLSX.utils.json_to_sheet([]);
     XLSX.utils.book_append_sheet(wb, overviewWs, 'Overview');
 
     // Counter for numbering sheets
@@ -141,22 +141,15 @@ function filterAndCreateSheets(csvData) {
                     'Overall': `=COUNTA('${sanitizedPlan}'!A2:A150)`,
                     'Completed': `=COUNTIF('${sanitizedPlan}'!L2:L150,"Y")`,
                     'No Splitter': `=COUNTIF('${sanitizedPlan}'!L2:L150,"N")`,
-                    //'Remaining': `=C${sheetNumber}-(D${sheetNumber}+E${sheetNumber})`
                     'Remaining': `=IF(C${sheetNumber} -(D${sheetNumber}+E${sheetNumber})=0,"COMPLETED",C${sheetNumber}-(D${sheetNumber}+E${sheetNumber}))`,
                     'Producer': LastFormula,
-                    'Remark':``,
-                    '':``,
-                    
+                    'Remark':``
                 });
             }
         }
         index_+=1
     });
     console.log('overviewData: ',overviewData)
-    // Update the "Overview" sheet with the final overview data
-    //XLSX.utils.sheet_add_json(overviewWs, overviewData, { header: ['NO', 'SG', 'Overall', 'Completed', 'No Splitter', 'Remaining','Producer'] });
-
-    // Add the "TOTAL" row at the bottom of the Overview sheet
     const totalRow = {
         'NO': '',
         'SG': 'TOTAL',
@@ -170,8 +163,8 @@ function filterAndCreateSheets(csvData) {
     //add producer,PRODUCER,NOSG,COMPLETED
     for(i in producerName){
         let index = Number(i)
-        SGCompleted_value = `=COUNTIFS($G$2:$G$21,J${index+2},$F$2:$F$21,"COMPLETED")`
-        HHCompleted_value = `=SUMIF($G$2:$G$21,J${index+2},$D$2:$D$21)`
+        SGCompleted_value = `=COUNTIFS($G$2:$G$${overviewData.length + 1},J${index+2},$F$2:$F$${overviewData.length + 1},"COMPLETED")`
+        HHCompleted_value = `=SUMIF($G$2:$G$${overviewData.length + 1},J${index+2},$D$2:$D$${overviewData.length + 1})`
 
         if(index < overviewData.length){
             overviewData[index]['PRODUCER'] = producerName[index]
